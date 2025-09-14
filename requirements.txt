@@ -12,3 +12,4 @@ fastapi-filter
 httpx
 pydantic[email]
 pydantic
+fastapi_pagination
