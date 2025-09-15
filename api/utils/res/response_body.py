@@ -9,4 +9,4 @@ class ResponseBody(BaseModel, Generic[T]):
     message: str
     body: T
     status: bool
-    datetime: datetime
+    datetime: str
