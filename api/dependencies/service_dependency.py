@@ -4,6 +4,8 @@ from api.configs.db.database import get_db
 from api.repositories.providers.provider_user_repository import UserRepositoryProvider
 from api.services.providers.provider_user_service import UserServiceProvider
 from api.services.providers.provider_jwt_service import JwtServiceProvider
+from api.repositories.providers.provider_task_repository import TaskRepositoryProvider
+from api.services.providers.provider_task_service import TaskServiceProvider
 from api.services.base.base_jwt_service import BaseJwtService
 from typing import Final
 
@@ -13,3 +15,7 @@ def get_user_provider_dependency(db: Session = Depends(get_db)) -> UserServicePr
 
 def get_jwt_service() -> BaseJwtService:
     return JwtServiceProvider()
+
+def get_task_provider_dependency(db: Session = Depends(get_db)) -> TaskServiceProvider:
+    repository: Final[TaskRepositoryProvider] = TaskRepositoryProvider(db)
+    return TaskServiceProvider(repository)
