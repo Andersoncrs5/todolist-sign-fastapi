@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from api.models.entities.task_entity import TaskEntity
-from utils.filters.task_filter import TaskFilter
+from api.utils.filters.task_filter import TaskFilter
 
 class BaseTaskRepository(ABC):
 

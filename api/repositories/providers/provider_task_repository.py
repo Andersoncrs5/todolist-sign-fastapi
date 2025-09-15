@@ -2,7 +2,7 @@ from api.repositories.base.base_task_repository import BaseTaskRepository
 from sqlalchemy.orm import Session
 from datetime import datetime
 from api.models.entities.task_entity import TaskEntity
-from utils.filters.task_filter import TaskFilter
+from api.utils.filters.task_filter import TaskFilter
 from sqlalchemy import select
 
 class TaskRepositoryProvider(BaseTaskRepository):
