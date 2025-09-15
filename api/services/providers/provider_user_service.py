@@ -30,6 +30,7 @@ class UserServiceProvider(BaseUserService):
 
     def create(self, dto: CreateUserDTO) -> UserEntity:
         user_mapped = dto.to_user_entity()
+        user_mapped.password = hash_password(user_mapped.password)
 
         user_created = self.repository.create(user_mapped)
 
