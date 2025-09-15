@@ -8,8 +8,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from api.models.entities.user_entity import UserEntity
-
-
 class TaskEntity(Base):
     __tablename__ = "tasks"
 
@@ -26,3 +24,18 @@ class TaskEntity(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     owner: Mapped["UserEntity"] = relationship("UserEntity", back_populates="tasks")
+
+    def to_task_out(self):
+        from api.models.schemas.task_schemas import TaskOUT
+
+        return TaskOUT(
+            id = self.id,
+            title = self.title,
+            description = self.description,
+            is_done = self.is_done,
+            due_date = str(self.due_date),
+            priority = self.priority,
+            user_id = self.user_id,
+            created_at = str(self.created_at),
+            updated_at = str(self.updated_at),
+        )
