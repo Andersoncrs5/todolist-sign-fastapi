@@ -22,3 +22,12 @@ class UserEntity(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     tasks: Mapped[list["TaskEntity"]] = relationship("TaskEntity", back_populates="owner")
+
+    def to_user_out(self):
+        from api.models.schemas.user_schemas import UserOUT
+
+        return UserOUT(
+            id = self.id,
+            name = self.name,
+            email = self.email,
+        )
