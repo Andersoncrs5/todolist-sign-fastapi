@@ -18,13 +18,87 @@ router: Final[APIRouter] = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 bearer_scheme: Final[HTTPBearer] = HTTPBearer()
 
+@router.get(
+    "/{refresh_token}",
+    status_code=200,
+    response_model=ResponseBody[Tokens],
+    responses={
+        401: RESPONSE_401,
+        404: RESPONSE_404_USER
+    }
+)
+def refresh_token_method(
+    refresh_token: str,
+    user_service: UserServiceProvider = Depends(get_user_provider_dependency),
+    jwt_service: BaseJwtService = Depends(get_jwt_service),
+    ):
+    
+    check_token = jwt_service.decode_token(refresh_token)
+    if check_token is None:
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content=dict(ResponseBody[None](
+                code=status.HTTP_401_UNAUTHORIZED,
+                message="You are not authorized",
+                status=False,
+                body=None,
+                datetime = str(datetime.now())
+            ))
+        )
+
+    user_id: Final[int | None] = jwt_service.extract_user_id(refresh_token)
+    if user_id is None:
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content=dict(ResponseBody[None](
+                code=status.HTTP_401_UNAUTHORIZED,
+                message="You are not authorized",
+                status=False,
+                body=None,
+                datetime = str(datetime.now())
+            ))
+        )
+
+    user: Final[UserEntity | None] = user_service.get_by_id(user_id)
+    if user is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=dict(ResponseBody[None](
+                code=status.HTTP_404_NOT_FOUND,
+                message="You are not authorized",
+                status=False,
+                body=None,
+                datetime = str(datetime.now())
+            ))
+        )
+
+    token: Final[str] = jwt_service.create_access_token(user)
+    new_refresh_token: Final[str] = jwt_service.create_refresh_token(user)
+
+    user_service.set_refresh_token(new_refresh_token, user)
+
+    tokens: Final[Tokens] = Tokens(token=token, refresh_token=new_refresh_token)
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content=dict(ResponseBody[dict](
+            message="New Tokens sended",
+            code=status.HTTP_200_OK,
+            status=True,
+            body=dict(tokens),
+            datetime = str(datetime.now())
+        ))
+    )
+
+
 @router.post(
     "/register",
     status_code=status.HTTP_200_OK,
     response_model=ResponseBody[Tokens],
     description="endpoint to register new user",
     responses={
-        409: { "model": ResponseBody[None], "description": "Email already exists" }
+        409: { "model": ResponseBody[None], "description": "Email already exists" },
+        404: RESPONSE_404_USER
     }
     )
 def resgiter(
@@ -40,7 +114,7 @@ def resgiter(
                 message="Email already in use",
                 status=False,
                 body=None,
-                datetime=datetime.now()
+                datetime=str(datetime.now())
             ))
         )
     
@@ -60,10 +134,11 @@ def resgiter(
             code=201,
             status=True,
             body=dict(tokens),
-            datetime=datetime.now()
+            datetime=str(datetime.now())
         ))
     )
     
+
 @router.post(
     "/login",
     status_code=status.HTTP_200_OK,
@@ -88,7 +163,7 @@ def login(
                 message="Login invalid",
                 status=False,
                 body=None,
-                datetime=datetime.now()
+                datetime=str(datetime.now())
             ))
         )
 
@@ -100,7 +175,7 @@ def login(
                 message="Login invalid",
                 status=False,
                 body=None,
-                datetime=datetime.now()
+                datetime=str(datetime.now())
             ))
         )
 
@@ -118,6 +193,63 @@ def login(
             code=status.HTTP_200_OK,
             status=True,
             body=dict(tokens),
-            datetime=datetime.now()
+            datetime=str(str(datetime.now()))
         ))
     )
+
+
+@router.get(
+    "/revoke",
+    status_code=status.HTTP_200_OK,
+    response_model=ResponseBody[None],
+    description="endpoint logout of user",
+    responses={
+        404: RESPONSE_404_USER,
+        401: RESPONSE_401
+    }
+    )
+def revoke(
+    user_service: UserServiceProvider = Depends(get_user_provider_dependency),
+    jwt_service: BaseJwtService = Depends(get_jwt_service),
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+):
+    token = jwt_service.valid_credentials(credentials)
+
+    user_id: Final[int | None] = jwt_service.extract_user_id(token)
+    if user_id is None:
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content=dict(ResponseBody[None](
+                code=status.HTTP_401_UNAUTHORIZED,
+                message="You are not authorized",
+                status=False,
+                body=None,
+                datetime = str(datetime.now())
+            ))
+        )
+
+    user: Final[UserEntity | None] = user_service.get_by_id(user_id)
+    if user is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=dict(ResponseBody[None](
+                code=status.HTTP_404_NOT_FOUND,
+                message="User not found",
+                status=False,
+                body=None,
+                datetime = str(datetime.now())
+            ))
+        )
+
+    user_service.set_refresh_token("", user)
+
+    return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=dict(ResponseBody[None](
+                code=status.HTTP_200_OK,
+                message="Bye Bye",
+                status=True,
+                body=None,
+                datetime = str(datetime.now())
+            ))
+        )
