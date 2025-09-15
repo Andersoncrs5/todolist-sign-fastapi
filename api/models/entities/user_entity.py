@@ -3,7 +3,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
 from api.configs.db.database import Base
-from api.models.entities.task_entity import TaskEntity
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from api.models.entities.task_entity import TaskEntity
+
 
 class UserEntity(Base):
     __tablename__ = "users"

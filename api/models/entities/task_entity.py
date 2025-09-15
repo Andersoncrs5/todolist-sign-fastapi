@@ -3,7 +3,12 @@ from typing import Text
 from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, func, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from api.configs.db.database import Base
-from api.models.entities.user_entity import UserEntity
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from api.models.entities.user_entity import UserEntity
+
 
 class TaskEntity(Base):
     __tablename__ = "tasks"
