@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 from typing import TypeVar, Generic
-from datetime import datetime
 
 T = TypeVar('T')
 
