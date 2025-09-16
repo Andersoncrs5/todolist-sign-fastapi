@@ -12,8 +12,8 @@ load_dotenv()
 
 SECRET_KEY: Final[str | None] = os.getenv("SECRET_KEY")
 ALGORITHM: Final[str | None] = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
-REFRESH_TOKEN_EXPIRE_MINUTES = os.getenv("REFRESH_TOKEN_EXPIRE_MINUTES")
+ACCESS_TOKEN_EXPIRE_MINUTES: Final[str | None] = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+REFRESH_TOKEN_EXPIRE_MINUTES: Final[str | None] = os.getenv("REFRESH_TOKEN_EXPIRE_MINUTES")
 
 if SECRET_KEY == None or ALGORITHM == None or ACCESS_TOKEN_EXPIRE_MINUTES == None or REFRESH_TOKEN_EXPIRE_MINUTES == None :
     raise ValueError("Jwt env are not defined")
@@ -47,7 +47,7 @@ class JwtServiceProvider(BaseJwtService):
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
     def decode_token(self, token: str) -> dict | None:
-        if ACCESS_TOKEN_EXPIRE_MINUTES == None or SECRET_KEY == None or ALGORITHM == None:
+        if ACCESS_TOKEN_EXPIRE_MINUTES is None or SECRET_KEY is None or ALGORITHM is None:
             raise ValueError("ACCESS_TOKEN_EXPIRE_MINUTES is not defined")
 
         try :
@@ -70,16 +70,16 @@ class JwtServiceProvider(BaseJwtService):
         return None
 
     def valid_credentials(self, creden: HTTPAuthorizationCredentials) -> str:
-        scheme = creden.scheme
+        scheme: Final[str] = creden.scheme
         if scheme != "Bearer":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authorization header invalid"
             )
         
-        token = creden.credentials
+        token: Final[str] = creden.credentials
 
-        token_valided = self.decode_token(token)
+        token_valided: Final[dict[str, str] | None] = self.decode_token(token)
 
         if token_valided is None :
             raise HTTPException(
