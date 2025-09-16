@@ -5,7 +5,7 @@ from api.models.schemas.user_schemas import CreateUserDTO, UpdateUserDTO, LoginD
 import random
 
 def create_user_return_token(client: TestClient):
-    num: Final[int] = random.randint(1,1000000000)
+    num: Final[int] = random.randint(1000000,100000000000)
 
     json_dto = CreateUserDTO(
         name = f"user {num}",
