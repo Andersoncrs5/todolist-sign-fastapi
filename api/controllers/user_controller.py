@@ -67,11 +67,11 @@ def update(
 
         return JSONResponse(
                 status_code=status.HTTP_200_OK,
-                content=dict(ResponseBody[UserOUT](
+                content=dict(ResponseBody[dict](
                     code=status.HTTP_200_OK,
                     message="User updated with successfully",
                     status=True,
-                    body=user_out,
+                    body=dict(user_out),
                     datetime = str(datetime.now())
                 ))
             )        
@@ -205,11 +205,11 @@ def get_me(
 
         return JSONResponse(
                 status_code=status.HTTP_200_OK,
-                content=dict(ResponseBody[UserOUT](
+                content=dict(ResponseBody[dict](
                     code=status.HTTP_200_OK,
                     message="User found with successfully",
                     status=True,
-                    body=user_out,
+                    body=dict(user_out),
                     datetime = str(datetime.now())
                 ))
             )        
