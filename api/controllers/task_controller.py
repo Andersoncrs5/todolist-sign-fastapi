@@ -18,6 +18,103 @@ router: Final[APIRouter] = APIRouter(prefix="/api/v1/task", tags=["Task"])
 bearer_scheme: Final[HTTPBearer] = HTTPBearer()
 
 @router.put(
+    "/{task_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=ResponseBody[TaskOUT],
+    responses = {
+        401: RESPONSE_401,
+        404: RESPONSE_404_USER,
+        500: RESPONSE_500,
+    }
+)
+def update(
+    task_id: int,
+    dto: UpdateTaskDTO,
+    task_service: TaskServiceProvider = Depends(get_task_provider_dependency),
+    jwt_service: BaseJwtService = Depends(get_jwt_service),
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+):
+    try:
+        token: Final[str] = jwt_service.valid_credentials(credentials)
+
+        user_id = jwt_service.extract_user_id(token)
+        if user_id is None:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content=dict(ResponseBody[None](
+                    code=status.HTTP_401_UNAUTHORIZED,
+                    message="You are not authorized",
+                    status=False,
+                    body=None,
+                    datetime = str(datetime.now())
+                ))
+            )
+
+        if task_id <= 0 or task_id is None:
+            return JSONResponse(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    content=dict(ResponseBody[None](
+                        code=status.HTTP_400_BAD_REQUEST,
+                        message="Task Id is required",
+                        status=False,
+                        body=None,
+                        datetime = str(datetime.now())
+                    ))
+                )
+
+        task: Final[TaskEntity | None] = task_service.get_by_id(task_id)
+        if task is None:
+            return JSONResponse(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    content=dict(ResponseBody[None](
+                        code=status.HTTP_404_NOT_FOUND,
+                        message="Task not found",
+                        status=False,
+                        body=None,
+                        datetime = str(datetime.now())
+                    ))
+                )
+
+        if user_id != task.user_id:
+            return JSONResponse(
+                status_code=409,
+                content=dict(ResponseBody[None](
+                    code=409,
+                    message="You are not authorized to update this task",
+                    status=False,
+                    body=None,
+                    datetime = str(datetime.now())
+                ))
+            )
+
+        task_changed: Final[TaskEntity] = task_service.update(task, dto)
+        task_out: Final[TaskOUT] = task_changed.to_task_out()
+
+        return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content=dict(ResponseBody[dict](
+                    code=status.HTTP_200_OK,
+                    message="Task updated with successfully",
+                    status=True,
+                    body=dict(task_out),
+                    datetime = str(datetime.now())
+                ))
+            )
+
+    except Exception as e:
+        return JSONResponse(
+                status_code=500,
+                content=dict(ResponseBody[Any](
+                    code=500,
+                    message="Error in server! Please try again later",
+                    status=False,
+                    body=str(e),
+                    datetime = str(datetime.now())
+                ))
+            )
+
+
+@router.put(
     "/{task_id}/toggle/status/is_done",
     status_code=status.HTTP_200_OK,
     response_model=ResponseBody[TaskOUT],
@@ -74,7 +171,7 @@ def change_status_done(
                     ))
                 )
 
-        if user_id == task.user_id:
+        if user_id != task.user_id:
             return JSONResponse(
                 status_code=409,
                 content=dict(ResponseBody[None](
@@ -91,11 +188,11 @@ def change_status_done(
 
         return JSONResponse(
                 status_code=status.HTTP_200_OK,
-                content=dict(ResponseBody[TaskOUT](
+                content=dict(ResponseBody[dict](
                     code=status.HTTP_200_OK,
                     message="Task status changed with successfully",
                     status=True,
-                    body=task_out,
+                    body=dict(task_out),
                     datetime = str(datetime.now())
                 ))
             )
@@ -169,7 +266,7 @@ def delete_task(
                     ))
                 )
 
-        if user_id == task.user_id:
+        if user_id != task.user_id:
             return JSONResponse(
                 status_code=409,
                 content=dict(ResponseBody[None](
@@ -263,7 +360,7 @@ def get_task(
                     ))
                 )
 
-        if user_id == task.user_id:
+        if user_id != task.user_id:
             return JSONResponse(
                 status_code=409,
                 content=dict(ResponseBody[None](
