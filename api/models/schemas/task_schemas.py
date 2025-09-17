@@ -17,7 +17,7 @@ class TaskOUT(BaseModel):
 
 class CreateTaskDTO(BaseModel):
     title: str
-    description: str
+    description: str | None
     is_done: bool
     due_date: date | None
     priority: int | None
