@@ -13,14 +13,37 @@ class TaskOUT(BaseModel):
     updated_at: str | datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CreateTaskDTO(BaseModel):
-    title: str
-    description: str | None
-    is_done: bool
-    due_date: date | None
-    priority: int | None
+    title: str = Field(
+        ...,
+        min_length=4,
+        max_length=50,
+        description="The title field must be between 4 and 50 characters."
+    )
+
+    description: str | None = Field(
+        None,
+        max_length=150,
+        description="The description field can have a maximum size of 150 characters."
+    )
+
+    is_done: bool = Field(
+        False,
+        description="The is_done field indicates if the task is completed."
+    )
+
+    due_date: date | None = Field(
+        None,
+        description="The due date for the task."
+    )
+    priority: int = Field(
+        1, 
+        ge=1,
+        le=10,
+        description="The priority field must be an integer between 1 and 10."
+    )
 
     def to_task_entity(self):
         from api.models.entities.task_entity import TaskEntity
@@ -34,10 +57,33 @@ class CreateTaskDTO(BaseModel):
         )
 
 class UpdateTaskDTO(BaseModel):
-    title: str | None
-    description: str | None
-    is_done: bool | None
-    due_date: date | None
-    priority: int | None
+    title: str | None = Field(
+        None,
+        min_length=4,
+        max_length=50,
+        description="The title field must be between 4 and 50 characters."
+    )
+
+    description: str | None = Field(
+        None,
+        max_length=150,
+        description="The description field can have a maximum size of 150 characters."
+    )
+
+    is_done: bool | None = Field(
+        None,
+        description="The is_done field indicates if the task is completed."
+    )
+
+    due_date: date | None = Field(
+        None,
+        description="The due date for the task."
+    )
+
+    priority: int | None = Field(
+        None,
+        le=10,
+        description="The priority field must be an integer between 1 and 10."
+    )
 
     
